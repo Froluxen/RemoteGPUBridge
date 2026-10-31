@@ -1,7 +1,8 @@
 # Plan de Desarrollo — Android Remote GPU Bridge (ARGB)
 
 > **Fecha:** 31 de octubre de 2026
-> **Estado:** Documentado y listo para iniciar la Fase 01
+> **Estado:** Documentado; entorno verificado y listo para iniciar la Fase 01
+> **Repositorio:** https://github.com/Froluxen/RemoteGPUBridge
 > **Fuente base:** `Android-Remote-GPU-Bridge-Development-Plan.md`
 > (este documento consolida y actualiza ese plan con las decisiones acordadas)
 
@@ -76,7 +77,7 @@ Decisiones nuevas acordadas (31/10/2026):
 | API de NVENC | **FFmpeg (`h264_nvenc`)**, encapsulado tras `FrameEncoder` | Vía más rápida a un H.264 válido usando el hardware NVENC real. La interfaz permite reemplazarlo por el Video Codec SDK puro en Fase 07 si las métricas lo piden. |
 | Paquetización H.264 | **NAL units con longitud explícita** + `SPS`/`PPS` por separado | Encaja con el framing ya previsto en el protocolo. En Android: `SPS`/`PPS` como `csd-0`/`csd-1` de `MediaCodec`. |
 | Ritmo de trabajo | **Individual, sin fecha límite dura** | Priorizar cerrar bien cada fase antes de avanzar. |
-| Estado del entorno | **Por verificar** (Vulkan SDK, CMake, toolchain MSVC, `adb`, driver NVIDIA) | Paso previo obligatorio a la Fase 01. |
+| Estado del entorno | **Verificado e instalado** (31/10/2026): CMake 4.4.4, Ninja 1.13.2, MSVC 14.44 + Windows SDK 10.0.26100, Vulkan SDK 1.4.363; RTX 4060 visible por Vulkan. `adb`/Android SDK pendiente para Fase 04/05. | Paso previo a la Fase 01 completado. |
 
 Pendientes de definir más adelante (no bloquean la Fase 01):
 - Byte order (endianness) y tamaño máximo de payload del protocolo.
@@ -185,11 +186,12 @@ Instrumentación obligatoria: `render_time_ms`, `readback_time_ms`,
 
 ## 8. Estado actual y próximos pasos
 
-**Estado:** plan documentado; sin código todavía.
+**Estado:** entorno verificado e instalado; repositorio Git inicializado y
+conectado a `https://github.com/Froluxen/RemoteGPUBridge.git` (rama `main`).
+Aún sin código.
 
 Próximos pasos:
-1. **Verificar el entorno** (solo lectura): Vulkan SDK, CMake, toolchain MSVC,
-   `adb`, driver NVIDIA, visibilidad de la RTX 4060.
+1. ~~Verificar el entorno~~ ✔ completado (31/10/2026).
 2. Crear la estructura del repositorio y el `CMakeLists.txt` de la Fase 01.
 3. Implementar `gpu-info.exe` y validar los criterios de aceptación de la Fase 01.
 
