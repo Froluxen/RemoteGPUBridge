@@ -1,7 +1,7 @@
 # Plan de Desarrollo — Android Remote GPU Bridge (ARGB)
 
 > **Fecha:** 31 de octubre de 2026
-> **Estado:** Documentado; Fases 01–02 completadas, Fase 03 por iniciar
+> **Estado:** Documentado; Fases 01–03 completadas, Fase 04 por iniciar
 > **Repositorio:** https://github.com/Froluxen/RemoteGPUBridge
 > **Fuente base:** `Android-Remote-GPU-Bridge-Development-Plan.md`
 > (este documento consolida y actualiza ese plan con las decisiones acordadas)
@@ -74,7 +74,7 @@ Decisiones nuevas acordadas (31/10/2026):
 
 | Decisión | Elección | Justificación |
 | --- | --- | --- |
-| API de NVENC | **FFmpeg (`h264_nvenc`)**, encapsulado tras `FrameEncoder` | Vía más rápida a un H.264 válido usando el hardware NVENC real. La interfaz permite reemplazarlo por el Video Codec SDK puro en Fase 07 si las métricas lo piden. |
+| API de NVENC | **FFmpeg (`h264_nvenc`)**, encapsulado tras `FrameEncoder` | Vía más rápida a un H.264 válido usando el hardware NVENC real. La interfaz permite reemplazarlo por el Video Codec SDK puro en Fase 07 si las métricas lo piden. Se usa **FFmpeg 8.0 (BtbN shared)**: el build master requiere NVENC API 13.1 y el driver 581.80 solo soporta 13.0. |
 | Paquetización H.264 | **NAL units con longitud explícita** + `SPS`/`PPS` por separado | Encaja con el framing ya previsto en el protocolo. En Android: `SPS`/`PPS` como `csd-0`/`csd-1` de `MediaCodec`. |
 | Ritmo de trabajo | **Individual, sin fecha límite dura** | Priorizar cerrar bien cada fase antes de avanzar. |
 | Estado del entorno | **Verificado e instalado** (31/10/2026): CMake 4.4.4, Ninja 1.13.2, MSVC 14.44 + Windows SDK 10.0.26100, Vulkan SDK 1.4.363; RTX 4060 visible por Vulkan. `adb`/Android SDK pendiente para Fase 04/05. | Paso previo a la Fase 01 completado. |
@@ -123,10 +123,13 @@ Detectar e inicializar la RTX 4060 por Vulkan.
 - **Entregable:** `argb-render.exe` (offscreen 1280×720, cubo rotatorio con
   depth test, snapshots PPM y métricas de frame time/FPS).
 
-### Fase 03 — Frame Capture & Hardware Encoding (3–5 días)
+### Fase 03 — Frame Capture & Hardware Encoding (3–5 días) — ✅ Completada
 - `FrameCapture` (staging buffer), interfaz `FrameEncoder`, integración NVENC vía
   FFmpeg, config H.264 (resolución/bitrate/FPS), `VideoPacketizer`.
 - **Meta:** flujo H.264 reproducible y estable a 720p30.
+- **Entregable:** `argb-encode.exe` (render → readback BGRA → `h264_nvenc` → `.h264`).
+- **Resultado:** 1800 frames a 720p30 (60 s de vídeo), 8 Mbps, decodificación
+  completa sin errores; pipeline ~51 FPS (readback ~17 ms, encode ~1,6 ms).
 
 ### Fase 04 — USB Transport Layer (2–4 días)
 - Servidor TCP Windows, canales vídeo/control, header binario, `HELLO`/`CONFIG`,
@@ -188,7 +191,7 @@ Instrumentación obligatoria: `render_time_ms`, `readback_time_ms`,
 
 ## 8. Estado actual y próximos pasos
 
-**Estado:** Fases 01 y 02 completadas. Repositorio conectado a
+**Estado:** Fases 01, 02 y 03 completadas. Repositorio conectado a
 `https://github.com/Froluxen/RemoteGPUBridge.git` (rama `main`).
 
 Resultado de la Fase 01:
@@ -206,11 +209,18 @@ Resultado de la Fase 02:
 - Prueba de estabilidad de 10 min: 4.623.774 frames, 0,129 ms promedio
   (~7727 FPS), cierre limpio.
 
+Resultado de la Fase 03:
+- `argb-encode.exe`: render Vulkan → readback BGRA → `h264_nvenc` → `.h264`.
+- 720p30, 8 Mbps; 1 minuto de vídeo (1800 frames) decodificado sin errores.
+- Métricas: render ~0,7 ms, readback ~17 ms, encode ~1,6 ms; pipeline ~51 FPS.
+- Módulos: `FrameEncoder` (interfaz), `FfmpegNvencEncoder`, `VideoPacketizer`.
+
 Próximos pasos:
 1. ~~Verificar el entorno~~ ✔ completado (31/10/2026).
 2. ~~Fase 01: `gpu-info.exe`~~ ✔ completado (31/10/2026).
 3. ~~Fase 02: renderer offscreen + cubo rotatorio~~ ✔ completado (31/10/2026).
-4. Iniciar la Fase 03: captura de frames y codificación NVENC.
+4. ~~Fase 03: captura de frames + NVENC~~ ✔ completado (31/10/2026).
+5. Iniciar la Fase 04: transporte USB (TCP + ADB Reverse) y protocolo binario.
 
 **Definition of Done — Fase 01** (resumida):
 - [x] Repo y estructura creados; CMake configura y compila con C++20.

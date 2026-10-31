@@ -650,7 +650,7 @@ bool VulkanRenderer::renderFrame(float timeSeconds, FrameStats& stats) {
     return true;
 }
 
-bool VulkanRenderer::saveSnapshot(const std::filesystem::path& ppmPath) {
+bool VulkanRenderer::captureFrame(std::vector<std::uint8_t>& pixels) {
     VkResult result = vkResetCommandBuffer(commandBuffer_, 0);
     if (result != VK_SUCCESS) {
         log::error(std::format("vkResetCommandBuffer fallo: {}", vk::resultString(result)));
@@ -734,10 +734,17 @@ bool VulkanRenderer::saveSnapshot(const std::filesystem::path& ppmPath) {
         return false;
     }
 
-    std::vector<std::uint8_t> pixels(static_cast<std::size_t>(bufferSize));
+    pixels.resize(static_cast<std::size_t>(bufferSize));
     std::memcpy(pixels.data(), mapped, static_cast<std::size_t>(bufferSize));
     vkUnmapMemory(device_, readbackMemory_);
+    return true;
+}
 
+bool VulkanRenderer::saveSnapshot(const std::filesystem::path& ppmPath) {
+    std::vector<std::uint8_t> pixels;
+    if (!captureFrame(pixels)) {
+        return false;
+    }
     return writePpm(ppmPath, config_.width, config_.height, pixels, colorFormat_);
 }
 

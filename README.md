@@ -9,6 +9,7 @@ con `MediaCodec` y devuelve los eventos táctiles a la PC.
 
 - **Fase 01 — GPU Discovery & Baseline:** completada (`gpu-info.exe`).
 - **Fase 02 — Vulkan Rendering Engine:** completada (`argb-render.exe`).
+- **Fase 03 — Frame Capture & Hardware Encoding:** completada (`argb-encode.exe`).
 - Entorno de desarrollo verificado.
 
 ## Documentación
@@ -42,11 +43,23 @@ O simplemente ejecutar `build.bat` (configura el entorno y compila todo).
 ```bat
 build\pc-server\gpu-info.exe
 build\pc-server\argb-render.exe --frames 120 --snapshot-every 30
+build\pc-server\argb-encode.exe --frames 300 --fps 30 --out out.h264
 ```
 
 `argb-render` renderiza offscreen y guarda snapshots PPM en `snapshots/`.
-Opciones: `--width`, `--height`, `--frames`, `--duration-seconds`,
-`--snapshot-every`, `--out`, `--gpu`, `--validate`.
+`argb-encode` renderiza, captura y codifica con NVENC a un flujo H.264.
+
+Opciones de `argb-render`: `--width`, `--height`, `--frames`,
+`--duration-seconds`, `--snapshot-every`, `--out`, `--gpu`, `--validate`.
+Opciones de `argb-encode`: `--width`, `--height`, `--fps`, `--bitrate-kbps`,
+`--frames`, `--duration-seconds`, `--out`, `--gpu`, `--validate`.
+
+### Requisito de FFmpeg para `argb-encode`
+
+Se usa **FFmpeg 8.0 shared (BtbN)** porque su NVENC API es compatible con el
+driver 581.80 (NVENC API 13.0). Los builds master requieren NVENC API 13.1.
+`build.bat` detecta automáticamente el paquete instalado en
+`%LOCALAPPDATA%\Microsoft\WinGet\Packages\BtbN.FFmpeg.GPL.Shared.8.0_*`.
 
 ## Roadmap
 

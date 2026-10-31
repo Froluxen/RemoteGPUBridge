@@ -42,10 +42,12 @@ public:
     const Camera& camera() const { return camera_; }
 
     bool renderFrame(float timeSeconds, FrameStats& stats);
+    bool captureFrame(std::vector<std::uint8_t>& pixels);
     bool saveSnapshot(const std::filesystem::path& ppmPath);
 
     std::uint32_t width() const { return config_.width; }
     std::uint32_t height() const { return config_.height; }
+    VkFormat colorFormat() const { return colorFormat_; }
 
 private:
     struct UniformBufferObject {

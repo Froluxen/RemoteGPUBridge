@@ -38,6 +38,10 @@ captures/
 # Snapshots de render
 snapshots/
 
+# Salidas de video de prueba
+*.h264
+encoded_frame*.png
+
 # Sistema / editores
 .DS_Store
 Thumbs.db

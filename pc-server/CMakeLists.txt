@@ -73,3 +73,54 @@ if(MSVC)
 else()
     target_compile_options(argb-render PRIVATE -Wall -Wextra -Wpedantic)
 endif()
+
+# ---------------------------------------------------------------------------
+# argb-encode (Fase 03) - requiere FFmpeg con h264_nvenc
+# ---------------------------------------------------------------------------
+if(NOT FFMPEG_ROOT AND DEFINED ENV{FFMPEG_ROOT})
+    set(FFMPEG_ROOT "$ENV{FFMPEG_ROOT}")
+endif()
+
+if(FFMPEG_ROOT AND EXISTS "${FFMPEG_ROOT}/include/libavcodec/avcodec.h")
+    find_library(AVCODEC_LIBRARY NAMES avcodec HINTS "${FFMPEG_ROOT}/lib" NO_DEFAULT_PATH)
+    find_library(AVUTIL_LIBRARY NAMES avutil HINTS "${FFMPEG_ROOT}/lib" NO_DEFAULT_PATH)
+
+    if(AVCODEC_LIBRARY AND AVUTIL_LIBRARY)
+        add_executable(argb-encode
+            src/encode_main.cpp
+            src/encoders/ffmpeg_nvenc_encoder.cpp
+            src/encoders/video_packetizer.cpp
+            src/renderer/vulkan_renderer.cpp
+            src/renderer/camera.cpp
+            src/renderer/mesh.cpp
+            src/core/vk_util.cpp
+            src/gpu/gpu_context.cpp
+            src/gpu/gpu_selector.cpp
+        )
+
+        add_dependencies(argb-encode argb-shaders)
+        target_include_directories(argb-encode PRIVATE src "${FFMPEG_ROOT}/include")
+        target_link_libraries(argb-encode PRIVATE Vulkan::Vulkan "${AVCODEC_LIBRARY}" "${AVUTIL_LIBRARY}")
+
+        if(MSVC)
+            target_compile_definitions(argb-encode PRIVATE _CRT_SECURE_NO_WARNINGS)
+            target_compile_options(argb-encode PRIVATE /W4 /permissive- /utf-8)
+        else()
+            target_compile_options(argb-encode PRIVATE -Wall -Wextra -Wpedantic)
+        endif()
+
+        file(GLOB FFMPEG_DLLS "${FFMPEG_ROOT}/bin/*.dll")
+        if(FFMPEG_DLLS)
+            add_custom_command(TARGET argb-encode POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FFMPEG_DLLS} "$<TARGET_FILE_DIR:argb-encode>"
+                COMMENT "Copiando DLLs de FFmpeg junto a argb-encode"
+            )
+        endif()
+
+        message(STATUS "FFmpeg (h264_nvenc) encontrado en ${FFMPEG_ROOT}")
+    else()
+        message(WARNING "FFmpeg headers encontrados pero faltan avcodec/avutil; argb-encode no se compilara.")
+    endif()
+else()
+    message(WARNING "FFMPEG_ROOT no definido o invalido; argb-encode no se compilara.")
+endif()

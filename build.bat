@@ -30,8 +30,21 @@ if errorlevel 1 (
     exit /b 1
 )
 
+rem Preferir FFmpeg 8.0: su NVENC API es compatible con el driver actual
+rem (los builds master requieren NVENC API 13.1 y fallan con 13.0).
+if "%FFMPEG_ROOT%"=="" (
+    for /d %%d in ("%LOCALAPPDATA%\Microsoft\WinGet\Packages\BtbN.FFmpeg.GPL.Shared.8.0_*") do (
+        for /d %%e in ("%%d\ffmpeg-*") do set "FFMPEG_ROOT=%%e"
+    )
+)
+if "%FFMPEG_ROOT%"=="" (
+    for /d %%d in ("%LOCALAPPDATA%\Microsoft\WinGet\Packages\BtbN.FFmpeg.GPL.Shared_*") do (
+        for /d %%e in ("%%d\ffmpeg-*") do set "FFMPEG_ROOT=%%e"
+    )
+)
+
 set "BUILD_DIR=%ROOT%\build"
-cmake -S "%ROOT%" -B "%BUILD_DIR%" -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake -S "%ROOT%" -B "%BUILD_DIR%" -G Ninja -DCMAKE_BUILD_TYPE=Release -DFFMPEG_ROOT="%FFMPEG_ROOT%"
 if errorlevel 1 (
     echo [ERROR] Configuracion de CMake fallida.
     exit /b 1
