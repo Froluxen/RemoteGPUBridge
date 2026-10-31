@@ -7,8 +7,8 @@ con `MediaCodec` y devuelve los eventos táctiles a la PC.
 
 ## Estado
 
-- **Fase 01 — GPU Discovery & Baseline:** en preparación.
-- Entorno de desarrollo verificado. Aún sin código.
+- **Fase 01 — GPU Discovery & Baseline:** completada (`gpu-info.exe`).
+- Entorno de desarrollo verificado.
 
 ## Documentación
 

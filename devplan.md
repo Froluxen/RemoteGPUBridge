@@ -1,7 +1,7 @@
 # Plan de Desarrollo — Android Remote GPU Bridge (ARGB)
 
 > **Fecha:** 31 de octubre de 2026
-> **Estado:** Documentado; entorno verificado y listo para iniciar la Fase 01
+> **Estado:** Documentado; Fase 01 completada, Fase 02 por iniciar
 > **Repositorio:** https://github.com/Froluxen/RemoteGPUBridge
 > **Fuente base:** `Android-Remote-GPU-Bridge-Development-Plan.md`
 > (este documento consolida y actualiza ese plan con las decisiones acordadas)
@@ -109,7 +109,7 @@ Módulos clave del cliente: `NetworkClient`, `VideoReceiver`, `H264Parser`,
 
 Estimación orientativa total (individual): **3–5 semanas** (no es garantía).
 
-### Fase 01 — GPU Discovery & Baseline (1–2 días)
+### Fase 01 — GPU Discovery & Baseline (1–2 días) — ✅ Completada
 Detectar e inicializar la RTX 4060 por Vulkan.
 - Estructura del repo, CMake + C++20, instancia Vulkan, enumerar physical devices,
   seleccionar la RTX 4060 explícitamente, crear logical device, logs y cierre limpio.
@@ -186,18 +186,23 @@ Instrumentación obligatoria: `render_time_ms`, `readback_time_ms`,
 
 ## 8. Estado actual y próximos pasos
 
-**Estado:** entorno verificado e instalado; repositorio Git inicializado y
-conectado a `https://github.com/Froluxen/RemoteGPUBridge.git` (rama `main`).
-Aún sin código.
+**Estado:** Fase 01 completada. Repositorio conectado a
+`https://github.com/Froluxen/RemoteGPUBridge.git` (rama `main`).
+
+Resultado de la Fase 01:
+- `gpu-info.exe` compila con CMake + Ninja + MSVC (C++20).
+- Enumera 2 dispositivos: NVIDIA RTX 4060 Laptop (discreta) e Intel Iris Xe.
+- Selecciona la RTX 4060 por nombre + vendor, independiente del orden.
+- Crea el logical device y cierra limpiamente (exit code 0).
 
 Próximos pasos:
 1. ~~Verificar el entorno~~ ✔ completado (31/10/2026).
-2. Crear la estructura del repositorio y el `CMakeLists.txt` de la Fase 01.
-3. Implementar `gpu-info.exe` y validar los criterios de aceptación de la Fase 01.
+2. ~~Estructura del repo + CMake + `gpu-info.exe`~~ ✔ completado (31/10/2026).
+3. Iniciar la Fase 02: render target offscreen y primer triángulo.
 
 **Definition of Done — Fase 01** (resumida):
-- [ ] Repo y estructura creados; CMake configura y compila con C++20.
-- [ ] Vulkan inicializa; se enumeran los physical devices.
-- [ ] Se identifica y selecciona la RTX 4060 explícitamente.
-- [ ] Se crea el logical device; logs de errores y capacidades.
-- [ ] La app finaliza limpiamente.
+- [x] Repo y estructura creados; CMake configura y compila con C++20.
+- [x] Vulkan inicializa; se enumeran los physical devices.
+- [x] Se identifica y selecciona la RTX 4060 explícitamente.
+- [x] Se crea el logical device; logs de errores y capacidades.
+- [x] La app finaliza limpiamente.
