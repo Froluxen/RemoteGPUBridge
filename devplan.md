@@ -203,6 +203,8 @@ Resultado de la Fase 02:
 - Shaders GLSL compilados a SPIR-V con `glslc` desde CMake.
 - Snapshots PPM para verificación visual.
 - Métricas de frame time y FPS en consola.
+- Prueba de estabilidad de 10 min: 4.623.774 frames, 0,129 ms promedio
+  (~7727 FPS), cierre limpio.
 
 Próximos pasos:
 1. ~~Verificar el entorno~~ ✔ completado (31/10/2026).
