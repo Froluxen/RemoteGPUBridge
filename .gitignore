@@ -1,0 +1,42 @@
+# Build / CMake
+build/
+out/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+
+# Binarios y artefactos
+*.obj
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.dll
+*.so
+*.a
+
+# Visual Studio
+.vs/
+*.sln
+*.vcxproj*
+*.user
+
+# Android / Gradle
+android-client/**/build/
+.gradle/
+local.properties
+*.iml
+.idea/
+captures/
+
+# Shaders compilados
+*.spv
+
+# Sistema / editores
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
