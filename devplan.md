@@ -1,7 +1,7 @@
 # Plan de Desarrollo — Android Remote GPU Bridge (ARGB)
 
 > **Fecha:** 31 de octubre de 2026
-> **Estado:** Documentado; Fase 01 completada, Fase 02 por iniciar
+> **Estado:** Documentado; Fases 01–02 completadas, Fase 03 por iniciar
 > **Repositorio:** https://github.com/Froluxen/RemoteGPUBridge
 > **Fuente base:** `Android-Remote-GPU-Bridge-Development-Plan.md`
 > (este documento consolida y actualiza ese plan con las decisiones acordadas)
@@ -116,10 +116,12 @@ Detectar e inicializar la RTX 4060 por Vulkan.
 - **Entregable:** `gpu-info.exe`.
 - **Regla de avance:** no empezar render/streaming/Android hasta completarla.
 
-### Fase 02 — Vulkan Rendering Engine (3–5 días)
+### Fase 02 — Vulkan Rendering Engine (3–5 días) — ✅ Completada
 - Contexto Vulkan, render target offscreen, shaders/pipelines, buffers, cámara.
 - Triángulo → cubo rotatorio → escena 3D sencilla. FPS y tiempo de render.
 - **Meta local:** 1280×720 a 60 FPS, estable 10 minutos.
+- **Entregable:** `argb-render.exe` (offscreen 1280×720, cubo rotatorio con
+  depth test, snapshots PPM y métricas de frame time/FPS).
 
 ### Fase 03 — Frame Capture & Hardware Encoding (3–5 días)
 - `FrameCapture` (staging buffer), interfaz `FrameEncoder`, integración NVENC vía
@@ -186,7 +188,7 @@ Instrumentación obligatoria: `render_time_ms`, `readback_time_ms`,
 
 ## 8. Estado actual y próximos pasos
 
-**Estado:** Fase 01 completada. Repositorio conectado a
+**Estado:** Fases 01 y 02 completadas. Repositorio conectado a
 `https://github.com/Froluxen/RemoteGPUBridge.git` (rama `main`).
 
 Resultado de la Fase 01:
@@ -195,10 +197,18 @@ Resultado de la Fase 01:
 - Selecciona la RTX 4060 por nombre + vendor, independiente del orden.
 - Crea el logical device y cierra limpiamente (exit code 0).
 
+Resultado de la Fase 02:
+- `argb-render.exe` renderiza un cubo 3D con cámara, depth test y rotación.
+- Render target offscreen 1280×720 (color B8G8R8A8_UNORM, depth D32_SFLOAT).
+- Shaders GLSL compilados a SPIR-V con `glslc` desde CMake.
+- Snapshots PPM para verificación visual.
+- Métricas de frame time y FPS en consola.
+
 Próximos pasos:
 1. ~~Verificar el entorno~~ ✔ completado (31/10/2026).
-2. ~~Estructura del repo + CMake + `gpu-info.exe`~~ ✔ completado (31/10/2026).
-3. Iniciar la Fase 02: render target offscreen y primer triángulo.
+2. ~~Fase 01: `gpu-info.exe`~~ ✔ completado (31/10/2026).
+3. ~~Fase 02: renderer offscreen + cubo rotatorio~~ ✔ completado (31/10/2026).
+4. Iniciar la Fase 03: captura de frames y codificación NVENC.
 
 **Definition of Done — Fase 01** (resumida):
 - [x] Repo y estructura creados; CMake configura y compila con C++20.

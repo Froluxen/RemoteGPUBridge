@@ -8,6 +8,7 @@ con `MediaCodec` y devuelve los eventos táctiles a la PC.
 ## Estado
 
 - **Fase 01 — GPU Discovery & Baseline:** completada (`gpu-info.exe`).
+- **Fase 02 — Vulkan Rendering Engine:** completada (`argb-render.exe`).
 - Entorno de desarrollo verificado.
 
 ## Documentación
@@ -33,6 +34,19 @@ Abrir el **x64 Native Tools Command Prompt for VS 2022** (o ejecutar
 cmake -S . -B build -G Ninja
 cmake --build build
 ```
+
+O simplemente ejecutar `build.bat` (configura el entorno y compila todo).
+
+## Ejecución
+
+```bat
+build\pc-server\gpu-info.exe
+build\pc-server\argb-render.exe --frames 120 --snapshot-every 30
+```
+
+`argb-render` renderiza offscreen y guarda snapshots PPM en `snapshots/`.
+Opciones: `--width`, `--height`, `--frames`, `--duration-seconds`,
+`--snapshot-every`, `--out`, `--gpu`, `--validate`.
 
 ## Roadmap
 

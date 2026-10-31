@@ -35,6 +35,9 @@ captures/
 # Shaders compilados
 *.spv
 
+# Snapshots de render
+snapshots/
+
 # Sistema / editores
 .DS_Store
 Thumbs.db
