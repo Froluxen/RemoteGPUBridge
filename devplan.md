@@ -1,7 +1,7 @@
 # Plan de Desarrollo — Android Remote GPU Bridge (ARGB)
 
 > **Fecha:** 31 de octubre de 2026
-> **Estado:** Documentado; Fases 01–05 completadas, Fase 06 por iniciar
+> **Estado:** Documentado; Fases 01–06 completadas, Fase 07 por iniciar
 > **Repositorio:** https://github.com/Froluxen/RemoteGPUBridge
 > **Fuente base:** `Android-Remote-GPU-Bridge-Development-Plan.md`
 > (este documento consolida y actualiza ese plan con las decisiones acordadas)
@@ -149,9 +149,12 @@ Detectar e inicializar la RTX 4060 por Vulkan.
 - **Resultado:** vídeo en vivo en el Redmi Note 13 por ADB Reverse; decoder
   hardware `c2.qti.avc.decoder` a 30 FPS con 0 frames descartados y RTT 2–4 ms.
 
-### Fase 06 — Touch Input Bridge (2–4 días)
+### Fase 06 — Touch Input Bridge (2–4 días) — ✅ Completada
 - `ACTION_DOWN/MOVE/UP/CANCEL`, multitouch, coordenadas normalizadas, `InputProcessor`,
   control de cámara, zoom, botones virtuales.
+- **Entregable:** captura táctil en `MainActivity` + `sendTouch` + `InputProcessor`.
+- **Resultado:** cientos de gestos reales desde el Redmi Note 13; drag = orbit,
+  pinch = zoom; `inputToFrame` 3–51 ms y 0 paquetes de vídeo descartados.
 
 ### Fase 07 — Performance Optimization (3–5 días)
 - Medir cada etapa (render/readback/encode/transport/decode/present/input),
@@ -199,7 +202,7 @@ Instrumentación obligatoria: `render_time_ms`, `readback_time_ms`,
 
 ## 8. Estado actual y próximos pasos
 
-**Estado:** Fases 01 a 05 completadas. Repositorio conectado a
+**Estado:** Fases 01 a 06 completadas. Repositorio conectado a
 `https://github.com/Froluxen/RemoteGPUBridge.git` (rama `main`).
 
 Resultado de la Fase 01:
@@ -239,6 +242,15 @@ Resultado de la Fase 05:
 - Decoder hardware `c2.qti.avc.decoder` a 30 FPS, 0 drops; RTT 2–4 ms.
 - Overlay de estadísticas (estado, CONFIG y RTT).
 
+Resultado de la Fase 06:
+- `MainActivity` captura `ACTION_DOWN/MOVE/UP/CANCEL` y multitouch, normaliza
+  coordenadas y envía mensajes `INPUT` por el canal de control.
+- `InputProcessor` en la PC: 1 dedo = orbit (yaw/pitch), 2 dedos = pinch (zoom),
+  con límites de pitch/distancia; `UP`/`CANCEL` liberan punteros.
+- Medición de latencia entrada→frame (`inputToFrame`).
+- Test unitario `input-processor-test` (drag, up, pinch, cancel) en PASS.
+- Validado con gestos reales en el Redmi Note 13: 0 drops de vídeo.
+
 Próximos pasos:
 1. ~~Verificar el entorno~~ ✔ completado (31/10/2026).
 2. ~~Fase 01: `gpu-info.exe`~~ ✔ completado (31/10/2026).
@@ -246,7 +258,8 @@ Próximos pasos:
 4. ~~Fase 03: captura de frames + NVENC~~ ✔ completado (31/10/2026).
 5. ~~Fase 04: transporte USB + protocolo binario~~ ✔ completado (31/10/2026).
 6. ~~Fase 05: cliente Android (MediaCodec + Surface)~~ ✔ completado (31/10/2026).
-7. Iniciar la Fase 06: puente de entrada táctil (Android → PC).
+7. ~~Fase 06: puente de entrada táctil~~ ✔ completado (31/10/2026).
+8. Iniciar la Fase 07: optimización de rendimiento (readback y latencia).
 
 **Definition of Done — Fase 01** (resumida):
 - [x] Repo y estructura creados; CMake configura y compila con C++20.

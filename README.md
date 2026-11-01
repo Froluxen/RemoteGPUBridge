@@ -12,6 +12,7 @@ con `MediaCodec` y devuelve los eventos táctiles a la PC.
 - **Fase 03 — Frame Capture & Hardware Encoding:** completada (`argb-encode.exe`).
 - **Fase 04 — USB Transport Layer:** completada (`argb-server.exe` + `docs/protocol.md`).
 - **Fase 05 — Android Video Client:** completada (`android-client/`, decoder hardware 30 FPS).
+- **Fase 06 — Touch Input Bridge:** completada (orbit + pinch, `InputProcessor`).
 - Entorno de desarrollo verificado.
 
 ## Documentación

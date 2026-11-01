@@ -5,11 +5,13 @@ import com.argb.client.decoder.H264Decoder
 import com.argb.client.protocol.Protocol
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
+import java.io.OutputStream
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 class StreamingClient(
     private val surface: Surface,
@@ -19,8 +21,13 @@ class StreamingClient(
     private val controlPort: Int = 5001
 ) {
     private val running = AtomicBoolean(false)
+    private val sequence = AtomicInteger(1)
+    private val controlWriteLock = Any()
     private var videoThread: Thread? = null
     private var controlThread: Thread? = null
+
+    @Volatile
+    private var controlOutput: OutputStream? = null
 
     @Volatile
     private var videoSocket: Socket? = null
@@ -43,6 +50,25 @@ class StreamingClient(
         videoThread?.join(1000)
         controlThread?.join(1000)
         decoder.release()
+    }
+
+    fun sendTouch(pointerId: Int, action: Int, x: Float, y: Float) {
+        val output = controlOutput ?: return
+        val payload = ByteBuffer.allocate(22)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .putInt(pointerId)
+            .putShort(action.toShort())
+            .putFloat(x)
+            .putFloat(y)
+            .putLong(System.currentTimeMillis())
+            .array()
+
+        synchronized(controlWriteLock) {
+            try {
+                Protocol.writeMessage(output, Protocol.TYPE_INPUT, payload, sequence.getAndIncrement())
+            } catch (_: Exception) {
+            }
+        }
     }
 
     private fun connect(port: Int): Socket {
@@ -84,25 +110,48 @@ class StreamingClient(
     }
 
     private fun controlLoop() {
-        var sequence = 1
         while (running.get()) {
+            var pinger: Thread? = null
             try {
                 val socket = connect(controlPort)
                 controlSocket = socket
                 val input = BufferedInputStream(socket.getInputStream())
                 val output = BufferedOutputStream(socket.getOutputStream())
+                controlOutput = output
 
-                Protocol.writeMessage(output, Protocol.TYPE_HELLO, ByteArray(0), sequence++)
+                synchronized(controlWriteLock) {
+                    Protocol.writeMessage(
+                        output,
+                        Protocol.TYPE_HELLO,
+                        ByteArray(0),
+                        sequence.getAndIncrement()
+                    )
+                }
                 onStats("Control conectado")
 
-                while (running.get()) {
-                    val now = System.currentTimeMillis()
-                    val ping = ByteBuffer.allocate(8)
-                        .order(ByteOrder.LITTLE_ENDIAN)
-                        .putLong(now)
-                        .array()
-                    Protocol.writeMessage(output, Protocol.TYPE_PING, ping, sequence++)
+                pinger = Thread({
+                    try {
+                        while (running.get() && !socket.isClosed) {
+                            synchronized(controlWriteLock) {
+                                val ping = ByteBuffer.allocate(8)
+                                    .order(ByteOrder.LITTLE_ENDIAN)
+                                    .putLong(System.currentTimeMillis())
+                                    .array()
+                                Protocol.writeMessage(
+                                    output,
+                                    Protocol.TYPE_PING,
+                                    ping,
+                                    sequence.getAndIncrement()
+                                )
+                            }
+                            Thread.sleep(1000)
+                        }
+                    } catch (_: Exception) {
+                    }
+                }, "argb-ping")
+                pinger.start()
 
+                while (running.get()) {
                     val message = Protocol.readMessage(input)
                     when (message.type) {
                         Protocol.TYPE_PING -> {
@@ -123,8 +172,10 @@ class StreamingClient(
                     onStats("Control: ${exception.message}")
                 }
             } finally {
+                controlOutput = null
                 closeQuietly(controlSocket)
                 controlSocket = null
+                pinger?.join(1000)
             }
             if (running.get()) Thread.sleep(500)
         }

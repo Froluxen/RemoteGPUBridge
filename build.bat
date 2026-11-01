@@ -45,13 +45,13 @@ if "%FFMPEG_ROOT%"=="" (
 
 set "BUILD_DIR=%ROOT%\build"
 cmake -S "%ROOT%" -B "%BUILD_DIR%" -G Ninja -DCMAKE_BUILD_TYPE=Release -DFFMPEG_ROOT="%FFMPEG_ROOT%"
-if errorlevel 1 (
+if not "%ERRORLEVEL%"=="0" (
     echo [ERROR] Configuracion de CMake fallida.
     exit /b 1
 )
 
 cmake --build "%BUILD_DIR%"
-if errorlevel 1 (
+if not "%ERRORLEVEL%"=="0" (
     echo [ERROR] Compilacion fallida.
     exit /b 1
 )

@@ -20,6 +20,21 @@ else()
 endif()
 
 # ---------------------------------------------------------------------------
+# Tests (sin GPU)
+# ---------------------------------------------------------------------------
+add_executable(input-processor-test
+    ${CMAKE_SOURCE_DIR}/tests/input_processor_test.cpp
+    src/input/input_processor.cpp
+)
+target_include_directories(input-processor-test PRIVATE src)
+
+if(MSVC)
+    target_compile_options(input-processor-test PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(input-processor-test PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+# ---------------------------------------------------------------------------
 # Shaders
 # ---------------------------------------------------------------------------
 set(SHADER_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
@@ -115,6 +130,7 @@ if(FFMPEG_ROOT AND EXISTS "${FFMPEG_ROOT}/include/libavcodec/avcodec.h")
         add_executable(argb-server
             src/transport_main.cpp
             src/transport/tcp_server.cpp
+            src/input/input_processor.cpp
             src/encoders/ffmpeg_nvenc_encoder.cpp
             src/renderer/vulkan_renderer.cpp
             src/renderer/camera.cpp

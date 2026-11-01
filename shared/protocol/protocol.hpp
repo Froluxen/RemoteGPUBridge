@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -82,6 +83,12 @@ inline void writeBytes(std::vector<std::uint8_t>& out, const std::vector<std::ui
     out.insert(out.end(), value.begin(), value.end());
 }
 
+inline void writeF32(std::vector<std::uint8_t>& out, float value) {
+    std::uint32_t bits = 0;
+    std::memcpy(&bits, &value, sizeof(bits));
+    writeU32(out, bits);
+}
+
 inline bool readU16(const std::vector<std::uint8_t>& in, std::size_t& offset, std::uint16_t& value) {
     if (offset + 2 > in.size()) return false;
     value = static_cast<std::uint16_t>(in[offset]) |
@@ -128,6 +135,13 @@ inline bool readBytes(const std::vector<std::uint8_t>& in,
     value.assign(in.begin() + static_cast<std::ptrdiff_t>(offset),
                  in.begin() + static_cast<std::ptrdiff_t>(offset + length));
     offset += length;
+    return true;
+}
+
+inline bool readF32(const std::vector<std::uint8_t>& in, std::size_t& offset, float& value) {
+    std::uint32_t bits = 0;
+    if (!readU32(in, offset, bits)) return false;
+    std::memcpy(&value, &bits, sizeof(value));
     return true;
 }
 

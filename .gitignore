@@ -42,6 +42,9 @@ snapshots/
 *.h264
 encoded_frame*.png
 phone_screen*.png
+swipe_*.png
+touch_*.png
+rtt_*.png
 
 # Sistema / editores
 .DS_Store

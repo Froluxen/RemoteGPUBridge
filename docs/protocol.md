@@ -61,6 +61,23 @@ seguido de un keyframe inicial.
 - El cliente debe tolerar lecturas parciales y mensajes concatenados (framing
   explícito por `length`).
 
+## INPUT (Android → PC)
+
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| `pointerId` | `uint32` | Identificador del puntero |
+| `action` | `uint16` | `1`=DOWN, `2`=MOVE, `3`=UP, `4`=CANCEL |
+| `x` | `float32` | Coordenada X normalizada `[0, 1]` |
+| `y` | `float32` | Coordenada Y normalizada `[0, 1]` |
+| `timestampMs` | `uint64` | Timestamp del cliente (ms) |
+
+El servidor interpreta:
+
+- Un puntero arrastrando → orbit de cámara (yaw/pitch).
+- Dos punteros → pinch para zoom (distancia de cámara).
+- `UP`/`CANCEL` eliminan el puntero; si quedan menos de dos, se reinicia la
+  referencia de pinch.
+
 ## ADB Reverse
 
 ```bash

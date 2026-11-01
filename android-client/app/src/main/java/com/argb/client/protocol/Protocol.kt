@@ -21,6 +21,11 @@ object Protocol {
     const val TYPE_PING = 6
     const val TYPE_ERROR = 7
 
+    const val TOUCH_DOWN = 1
+    const val TOUCH_MOVE = 2
+    const val TOUCH_UP = 3
+    const val TOUCH_CANCEL = 4
+
     data class Message(val type: Int, val payload: ByteArray, val sequence: Int)
 
     data class VideoConfig(

@@ -3,6 +3,7 @@
 #include "encoders/frame_encoder.hpp"
 #include "gpu/gpu_context.hpp"
 #include "gpu/gpu_selector.hpp"
+#include "input/input_processor.hpp"
 #include "protocol/protocol.hpp"
 #include "renderer/vulkan_renderer.hpp"
 #include "transport/tcp_server.hpp"
@@ -267,9 +268,8 @@ int main(int argc, char** argv) {
             return EXIT_FAILURE;
         }
 
-        renderer.camera().position = {2.4f, 1.8f, 3.2f};
-        renderer.camera().target = {0.0f, 0.0f, 0.0f};
         renderer.camera().fovDegrees = 60.0f;
+        input::InputProcessor inputProcessor;
 
         std::vector<std::uint8_t> pixels;
         std::vector<encode::EncodedPacket> packets;
@@ -338,9 +338,27 @@ int main(int argc, char** argv) {
                     case protocol::MessageType::Ping:
                         controlServer.send(protocol::MessageType::Ping, message.payload);
                         break;
-                    case protocol::MessageType::Input:
-                        log::info(std::format("INPUT recibido: {} bytes.", message.payload.size()));
+                    case protocol::MessageType::Input: {
+                        input::TouchEvent touch;
+                        std::size_t offset = 0;
+                        std::uint16_t action = 0;
+                        std::uint64_t timestamp = 0;
+                        if (protocol::readU32(message.payload, offset, touch.pointerId) &&
+                            protocol::readU16(message.payload, offset, action) &&
+                            protocol::readF32(message.payload, offset, touch.x) &&
+                            protocol::readF32(message.payload, offset, touch.y) &&
+                            protocol::readU64(message.payload, offset, timestamp)) {
+                            touch.action = static_cast<input::TouchAction>(action);
+                            touch.timestampMs = timestamp;
+                            inputProcessor.handleEvent(touch);
+                            log::info(std::format("INPUT pointer={} action={} x={:.3f} y={:.3f}",
+                                                  touch.pointerId,
+                                                  static_cast<int>(touch.action),
+                                                  touch.x,
+                                                  touch.y));
+                        }
                         break;
+                    }
                     case protocol::MessageType::Stats:
                         break;
                     default:
@@ -394,12 +412,15 @@ int main(int argc, char** argv) {
             const float timeSeconds =
                 static_cast<float>(frameIndex) / static_cast<float>(options.fps);
 
+            inputProcessor.applyToCamera(renderer.camera());
+
             renderer::FrameStats frameStats;
             if (!renderer.renderFrame(timeSeconds, frameStats)) {
                 log::error(std::format("Fallo el render del frame {}.", frameIndex));
                 break;
             }
             renderTotalMs += frameStats.cpuFrameMs;
+            inputProcessor.markFrameRendered();
 
             const auto captureStart = std::chrono::steady_clock::now();
             if (!renderer.captureFrame(pixels)) {
@@ -432,7 +453,13 @@ int main(int argc, char** argv) {
                 protocol::writeU32(statsPayload, static_cast<std::uint32_t>(frameIndex));
                 protocol::writeU32(statsPayload, static_cast<std::uint32_t>(videoPackets));
                 protocol::writeU32(statsPayload, static_cast<std::uint32_t>(videoServer.droppedMessages()));
+                protocol::writeF32(statsPayload, static_cast<float>(inputProcessor.lastInputToFrameMs()));
                 controlServer.send(protocol::MessageType::Stats, statsPayload);
+                log::info(std::format("Stats: frames={} video={} dropped={} inputToFrame={:.2f} ms",
+                                      frameIndex,
+                                      videoPackets,
+                                      videoServer.droppedMessages(),
+                                      inputProcessor.lastInputToFrameMs()));
             }
         }
 
