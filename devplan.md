@@ -1,7 +1,7 @@
 # Plan de Desarrollo — Android Remote GPU Bridge (ARGB)
 
 > **Fecha:** 31 de octubre de 2026
-> **Estado:** Documentado; Fases 01–03 completadas, Fase 04 por iniciar
+> **Estado:** Documentado; Fases 01–04 completadas, Fase 05 por iniciar
 > **Repositorio:** https://github.com/Froluxen/RemoteGPUBridge
 > **Fuente base:** `Android-Remote-GPU-Bridge-Development-Plan.md`
 > (este documento consolida y actualiza ese plan con las decisiones acordadas)
@@ -79,9 +79,11 @@ Decisiones nuevas acordadas (31/10/2026):
 | Ritmo de trabajo | **Individual, sin fecha límite dura** | Priorizar cerrar bien cada fase antes de avanzar. |
 | Estado del entorno | **Verificado e instalado** (31/10/2026): CMake 4.4.4, Ninja 1.13.2, MSVC 14.44 + Windows SDK 10.0.26100, Vulkan SDK 1.4.363; RTX 4060 visible por Vulkan. `adb`/Android SDK pendiente para Fase 04/05. | Paso previo a la Fase 01 completado. |
 
-Pendientes de definir más adelante (no bloquean la Fase 01):
-- Byte order (endianness) y tamaño máximo de payload del protocolo.
-- Formato concreto de conversión NAL ↔ MediaCodec (detalle de Fase 04/05).
+Protocolo definido (ver [`docs/protocol.md`](docs/protocol.md)):
+- Little-endian, header de 16 bytes, payload máximo 16 MB, framing por `length`.
+
+Pendientes de definir más adelante:
+- Formato concreto de conversión NAL ↔ MediaCodec (detalle de Fase 05).
 
 ---
 
@@ -131,10 +133,13 @@ Detectar e inicializar la RTX 4060 por Vulkan.
 - **Resultado:** 1800 frames a 720p30 (60 s de vídeo), 8 Mbps, decodificación
   completa sin errores; pipeline ~51 FPS (readback ~17 ms, encode ~1,6 ms).
 
-### Fase 04 — USB Transport Layer (2–4 días)
+### Fase 04 — USB Transport Layer (2–4 días) — ✅ Completada
 - Servidor TCP Windows, canales vídeo/control, header binario, `HELLO`/`CONFIG`,
   `PING`, manejo de desconexión/reconexión. Framing con lecturas parciales.
 - Prueba de 30 min sin bloqueos ni crecimiento de memoria.
+- **Entregable:** `argb-server.exe` + `docs/protocol.md`.
+- **Resultado:** validado desde el Redmi Note 13 por ADB Reverse; control recibe
+  HELLO/STATS y vídeo recibe CONFIG (SPS/PPS) + ~2,1 MB en 2 s (63 paquetes).
 
 ### Fase 05 — Android Video Client (3–5 días)
 - Cliente TCP, parser, `VideoReceiver`, gestión SPS/PPS, `MediaCodec` + `Surface`,
@@ -191,7 +196,7 @@ Instrumentación obligatoria: `render_time_ms`, `readback_time_ms`,
 
 ## 8. Estado actual y próximos pasos
 
-**Estado:** Fases 01, 02 y 03 completadas. Repositorio conectado a
+**Estado:** Fases 01, 02, 03 y 04 completadas. Repositorio conectado a
 `https://github.com/Froluxen/RemoteGPUBridge.git` (rama `main`).
 
 Resultado de la Fase 01:
@@ -215,12 +220,21 @@ Resultado de la Fase 03:
 - Métricas: render ~0,7 ms, readback ~17 ms, encode ~1,6 ms; pipeline ~51 FPS.
 - Módulos: `FrameEncoder` (interfaz), `FfmpegNvencEncoder`, `VideoPacketizer`.
 
+Resultado de la Fase 04:
+- `argb-server.exe`: render + NVENC + TCP en dos canales (vídeo `:5000`, control `:5001`).
+- Protocolo binario versionado, little-endian, header de 16 bytes (`docs/protocol.md`).
+- Mensajes: `HELLO`, `CONFIG` (con SPS/PPS), `VIDEO`, `STATS`, `PING`, `ERROR`.
+- Validado desde el Redmi Note 13 por ADB Reverse: HELLO/STATS en control y
+  CONFIG + ~2,1 MB de vídeo en 2 s (63 paquetes).
+- Reconexión soportada (acepta un cliente nuevo al desconectarse).
+
 Próximos pasos:
 1. ~~Verificar el entorno~~ ✔ completado (31/10/2026).
 2. ~~Fase 01: `gpu-info.exe`~~ ✔ completado (31/10/2026).
 3. ~~Fase 02: renderer offscreen + cubo rotatorio~~ ✔ completado (31/10/2026).
 4. ~~Fase 03: captura de frames + NVENC~~ ✔ completado (31/10/2026).
-5. Iniciar la Fase 04: transporte USB (TCP + ADB Reverse) y protocolo binario.
+5. ~~Fase 04: transporte USB + protocolo binario~~ ✔ completado (31/10/2026).
+6. Iniciar la Fase 05: cliente Android (recepción, MediaCodec y Surface).
 
 **Definition of Done — Fase 01** (resumida):
 - [x] Repo y estructura creados; CMake configura y compila con C++20.

@@ -10,6 +10,7 @@ con `MediaCodec` y devuelve los eventos táctiles a la PC.
 - **Fase 01 — GPU Discovery & Baseline:** completada (`gpu-info.exe`).
 - **Fase 02 — Vulkan Rendering Engine:** completada (`argb-render.exe`).
 - **Fase 03 — Frame Capture & Hardware Encoding:** completada (`argb-encode.exe`).
+- **Fase 04 — USB Transport Layer:** completada (`argb-server.exe` + `docs/protocol.md`).
 - Entorno de desarrollo verificado.
 
 ## Documentación
@@ -44,7 +45,20 @@ O simplemente ejecutar `build.bat` (configura el entorno y compila todo).
 build\pc-server\gpu-info.exe
 build\pc-server\argb-render.exe --frames 120 --snapshot-every 30
 build\pc-server\argb-encode.exe --frames 300 --fps 30 --out out.h264
+build\pc-server\argb-server.exe --forever
 ```
+
+### Servidor de streaming + ADB Reverse
+
+```bat
+adb reverse tcp:5000 tcp:5000
+adb reverse tcp:5001 tcp:5001
+adb reverse --list
+build\pc-server\argb-server.exe --forever
+```
+
+El cliente Android se conecta a `127.0.0.1:5000` (vídeo) y `127.0.0.1:5001`
+(control). El protocolo está documentado en [`docs/protocol.md`](docs/protocol.md).
 
 `argb-render` renderiza offscreen y guarda snapshots PPM en `snapshots/`.
 `argb-encode` renderiza, captura y codifica con NVENC a un flujo H.264.

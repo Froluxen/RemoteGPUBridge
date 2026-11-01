@@ -16,6 +16,7 @@ inline void write(Level level, std::string_view message) {
         case Level::Error: tag = "ERROR"; break;
     }
     out << '[' << tag << "] " << message << '\n';
+    out.flush();
 }
 
 inline void info(std::string_view message) { write(Level::Info, message); }

@@ -109,11 +109,41 @@ if(FFMPEG_ROOT AND EXISTS "${FFMPEG_ROOT}/include/libavcodec/avcodec.h")
             target_compile_options(argb-encode PRIVATE -Wall -Wextra -Wpedantic)
         endif()
 
+        # -------------------------------------------------------------------
+        # argb-server (Fase 04): render + encode + transporte TCP
+        # -------------------------------------------------------------------
+        add_executable(argb-server
+            src/transport_main.cpp
+            src/transport/tcp_server.cpp
+            src/encoders/ffmpeg_nvenc_encoder.cpp
+            src/renderer/vulkan_renderer.cpp
+            src/renderer/camera.cpp
+            src/renderer/mesh.cpp
+            src/core/vk_util.cpp
+            src/gpu/gpu_context.cpp
+            src/gpu/gpu_selector.cpp
+        )
+
+        add_dependencies(argb-server argb-shaders)
+        target_include_directories(argb-server PRIVATE src "${CMAKE_SOURCE_DIR}/shared" "${FFMPEG_ROOT}/include")
+        target_link_libraries(argb-server PRIVATE Vulkan::Vulkan "${AVCODEC_LIBRARY}" "${AVUTIL_LIBRARY}" ws2_32)
+
+        if(MSVC)
+            target_compile_definitions(argb-server PRIVATE _CRT_SECURE_NO_WARNINGS)
+            target_compile_options(argb-server PRIVATE /W4 /permissive- /utf-8)
+        else()
+            target_compile_options(argb-server PRIVATE -Wall -Wextra -Wpedantic)
+        endif()
+
         file(GLOB FFMPEG_DLLS "${FFMPEG_ROOT}/bin/*.dll")
         if(FFMPEG_DLLS)
             add_custom_command(TARGET argb-encode POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FFMPEG_DLLS} "$<TARGET_FILE_DIR:argb-encode>"
                 COMMENT "Copiando DLLs de FFmpeg junto a argb-encode"
+            )
+            add_custom_command(TARGET argb-server POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FFMPEG_DLLS} "$<TARGET_FILE_DIR:argb-server>"
+                COMMENT "Copiando DLLs de FFmpeg junto a argb-server"
             )
         endif()
 
