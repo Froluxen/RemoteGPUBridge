@@ -155,6 +155,10 @@ Detectar e inicializar la RTX 4060 por Vulkan.
 - **Entregable:** captura táctil en `MainActivity` + `sendTouch` + `InputProcessor`.
 - **Resultado:** cientos de gestos reales desde el Redmi Note 13; drag = orbit,
   pinch = zoom; `inputToFrame` 3–51 ms y 0 paquetes de vídeo descartados.
+- **Corrección de regresión:** el envío táctil ya no hace I/O en el hilo de UI
+  (cola acotada + hilo `argb-touch`, flush por lote) y se eliminó el log por
+  evento en el servidor. Estrés de 180 eventos a 60 Hz: 0 drops y pipeline
+  estable (~30 FPS).
 
 ### Fase 07 — Performance Optimization (3–5 días)
 - Medir cada etapa (render/readback/encode/transport/decode/present/input),
@@ -250,6 +254,8 @@ Resultado de la Fase 06:
 - Medición de latencia entrada→frame (`inputToFrame`).
 - Test unitario `input-processor-test` (drag, up, pinch, cancel) en PASS.
 - Validado con gestos reales en el Redmi Note 13: 0 drops de vídeo.
+- Regresión corregida: el touch ya no bloquea el hilo de UI (cola + hilo
+  dedicado) ni se loguea cada `INPUT`; estrés de 180 eventos a 60 Hz sin drops.
 
 Próximos pasos:
 1. ~~Verificar el entorno~~ ✔ completado (31/10/2026).

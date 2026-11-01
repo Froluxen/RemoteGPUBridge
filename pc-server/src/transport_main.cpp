@@ -351,11 +351,6 @@ int main(int argc, char** argv) {
                             touch.action = static_cast<input::TouchAction>(action);
                             touch.timestampMs = timestamp;
                             inputProcessor.handleEvent(touch);
-                            log::info(std::format("INPUT pointer={} action={} x={:.3f} y={:.3f}",
-                                                  touch.pointerId,
-                                                  static_cast<int>(touch.action),
-                                                  touch.x,
-                                                  touch.y));
                         }
                         break;
                     }

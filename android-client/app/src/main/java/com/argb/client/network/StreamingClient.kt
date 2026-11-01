@@ -10,6 +10,8 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -23,8 +25,10 @@ class StreamingClient(
     private val running = AtomicBoolean(false)
     private val sequence = AtomicInteger(1)
     private val controlWriteLock = Any()
+    private val touchQueue = ArrayBlockingQueue<ByteArray>(64)
     private var videoThread: Thread? = null
     private var controlThread: Thread? = null
+    private var touchThread: Thread? = null
 
     @Volatile
     private var controlOutput: OutputStream? = null
@@ -41,19 +45,21 @@ class StreamingClient(
         if (running.getAndSet(true)) return
         videoThread = Thread({ videoLoop() }, "argb-video").also { it.start() }
         controlThread = Thread({ controlLoop() }, "argb-control").also { it.start() }
+        touchThread = Thread({ touchSendLoop() }, "argb-touch").also { it.start() }
     }
 
     fun stop() {
         running.set(false)
+        touchThread?.interrupt()
         closeQuietly(videoSocket)
         closeQuietly(controlSocket)
         videoThread?.join(1000)
         controlThread?.join(1000)
+        touchThread?.join(1000)
         decoder.release()
     }
 
     fun sendTouch(pointerId: Int, action: Int, x: Float, y: Float) {
-        val output = controlOutput ?: return
         val payload = ByteBuffer.allocate(22)
             .order(ByteOrder.LITTLE_ENDIAN)
             .putInt(pointerId)
@@ -63,10 +69,46 @@ class StreamingClient(
             .putLong(System.currentTimeMillis())
             .array()
 
-        synchronized(controlWriteLock) {
-            try {
-                Protocol.writeMessage(output, Protocol.TYPE_INPUT, payload, sequence.getAndIncrement())
-            } catch (_: Exception) {
+        // Nunca bloqueamos el hilo de UI: si la cola esta llena, descartamos
+        // el evento mas antiguo (preferimos el estado mas reciente).
+        if (!touchQueue.offer(payload)) {
+            touchQueue.poll()
+            touchQueue.offer(payload)
+        }
+    }
+
+    private fun touchSendLoop() {
+        while (running.get()) {
+            val first = try {
+                touchQueue.poll(500, TimeUnit.MILLISECONDS)
+            } catch (_: InterruptedException) {
+                continue
+            } ?: continue
+
+            val output = controlOutput ?: continue
+
+            synchronized(controlWriteLock) {
+                var payload: ByteArray? = first
+                var count = 0
+                while (payload != null && count < 32) {
+                    try {
+                        Protocol.writeMessage(
+                            output,
+                            Protocol.TYPE_INPUT,
+                            payload,
+                            sequence.getAndIncrement(),
+                            flush = false
+                        )
+                    } catch (_: Exception) {
+                        return@synchronized
+                    }
+                    count++
+                    payload = touchQueue.poll()
+                }
+                try {
+                    output.flush()
+                } catch (_: Exception) {
+                }
             }
         }
     }

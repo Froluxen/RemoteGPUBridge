@@ -62,7 +62,13 @@ object Protocol {
         return Message(type, payload, sequence)
     }
 
-    fun writeMessage(output: OutputStream, type: Int, payload: ByteArray, sequence: Int) {
+    fun writeMessage(
+        output: OutputStream,
+        type: Int,
+        payload: ByteArray,
+        sequence: Int,
+        flush: Boolean = true
+    ) {
         val header = ByteBuffer.allocate(HEADER_SIZE).order(ByteOrder.LITTLE_ENDIAN)
         header.putInt(MAGIC)
         header.putShort(VERSION.toShort())
@@ -71,7 +77,9 @@ object Protocol {
         header.putInt(sequence)
         output.write(header.array())
         output.write(payload)
-        output.flush()
+        if (flush) {
+            output.flush()
+        }
     }
 
     fun parseVideoConfig(payload: ByteArray): VideoConfig {

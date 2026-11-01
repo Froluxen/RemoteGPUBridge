@@ -124,17 +124,17 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
             try {
                 Thread.sleep(4000)
                 val streamingClient = client ?: return@Thread
-                val points = listOf(
-                    0.35f to 0.50f,
-                    0.41f to 0.50f,
-                    0.47f to 0.50f,
-                    0.53f to 0.50f,
-                    0.59f to 0.50f
-                )
+                // ~180 eventos a 60 Hz para estresar el canal de control.
+                val points = (0 until 180).map { index ->
+                    val t = index / 179.0f
+                    val x = 0.35f + 0.30f * t
+                    val y = 0.50f + 0.10f * kotlin.math.sin(t * 6.2831855f)
+                    x to y
+                }
                 val first = points.first()
                 streamingClient.sendTouch(0, Protocol.TOUCH_DOWN, first.first, first.second)
                 for ((x, y) in points.drop(1)) {
-                    Thread.sleep(30)
+                    Thread.sleep(16)
                     streamingClient.sendTouch(0, Protocol.TOUCH_MOVE, x, y)
                 }
                 val last = points.last()

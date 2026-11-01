@@ -45,6 +45,7 @@ phone_screen*.png
 swipe_*.png
 touch_*.png
 rtt_*.png
+stress_*.png
 
 # Sistema / editores
 .DS_Store
