@@ -1,7 +1,7 @@
 # Plan de Desarrollo — Android Remote GPU Bridge (ARGB)
 
 > **Fecha:** 31 de octubre de 2026
-> **Estado:** Documentado; Fases 01–07 completadas (POC), Fase 08 (investigación) pendiente
+> **Estado:** Documentado; Fases 01–07 completadas (POC) + Fase 08 (investigación) completada
 > **Repositorio:** https://github.com/Froluxen/RemoteGPUBridge
 > **Fuente base:** `Android-Remote-GPU-Bridge-Development-Plan.md`
 > (este documento consolida y actualiza ese plan con las decisiones acordadas)
@@ -168,9 +168,15 @@ Detectar e inicializar la RTX 4060 por Vulkan.
   cacheada); pipeline 45 → 452 FPS offline y 30 FPS con pacing;
   0 frames descartados.
 
-### Fase 08 — GPU Redirection Research (abierta; fuera del plazo base)
+### Fase 08 — GPU Redirection Research — ✅ Completada (investigación)
 - Investigación documentada de viabilidad (Vulkan Layers, ANGLE, Graphics HAL, etc.).
-- **Entregable:** `docs/research/android-gpu-redirection.md`.
+- **Entregable:** [`docs/research/android-gpu-redirection.md`](docs/research/android-gpu-redirection.md).
+- **Conclusión:** la redirección transparente de apps de terceros **no es viable**
+  sin root/build userdebug o cooperación de la app (`injectLayers.enable`).
+  Verificado en el Redmi Note 13: build `user`, `ro.debuggable=0`, SELinux
+  Enforcing, sin `su`, y settings de GPU debug rechazados con
+  `WRITE_SECURE_SETTINGS`. Alternativas viables: emulador/VM Android en PC con
+  GPU, screen mirroring (render local) o cloud streaming.
 
 ---
 
@@ -210,7 +216,8 @@ Instrumentación obligatoria: `render_time_ms`, `readback_time_ms`,
 
 ## 8. Estado actual y próximos pasos
 
-**Estado:** Fases 01 a 07 completadas (POC funcional). Repositorio conectado a
+**Estado:** Fases 01–08 completadas: POC funcional + investigación de
+redirección cerrada. Repositorio conectado a
 `https://github.com/Froluxen/RemoteGPUBridge.git` (rama `main`).
 
 Resultado de la Fase 01:
@@ -270,6 +277,14 @@ Resultado de la Fase 07:
 - 0 frames descartados en las pruebas de streaming.
 - Informe: [`docs/benchmarks.md`](docs/benchmarks.md).
 
+Resultado de la Fase 08:
+- Informe: [`docs/research/android-gpu-redirection.md`](docs/research/android-gpu-redirection.md).
+- **No viable** redirigir la GPU de una app de terceros sin root ni cooperación:
+  el sandbox/SELinux y los candados de capas (debuggable / userdebug+root /
+  `injectLayers.enable`) lo impiden. Confirmado empíricamente en el dispositivo.
+- Alternativas viables: emulador/VM Android en PC con GPU acelerada, screen
+  mirroring (render local) o cloud app streaming.
+
 Próximos pasos:
 1. ~~Verificar el entorno~~ ✔ completado (31/10/2026).
 2. ~~Fase 01: `gpu-info.exe`~~ ✔ completado (31/10/2026).
@@ -279,7 +294,8 @@ Próximos pasos:
 6. ~~Fase 05: cliente Android (MediaCodec + Surface)~~ ✔ completado (31/10/2026).
 7. ~~Fase 06: puente de entrada táctil~~ ✔ completado (31/10/2026).
 8. ~~Fase 07: optimización de rendimiento~~ ✔ completado (31/10/2026).
-9. Fase 08 (opcional): investigación de redirección de GPU para apps de terceros.
+9. ~~Fase 08: investigación de redirección de GPU~~ ✔ completado (31/10/2026).
+10. Decisión de producto: evaluar una VM/emulador Android en PC como alternativa.
 
 **Definition of Done — Fase 01** (resumida):
 - [x] Repo y estructura creados; CMake configura y compila con C++20.

@@ -14,7 +14,10 @@ con `MediaCodec` y devuelve los eventos táctiles a la PC.
 - **Fase 05 — Android Video Client:** completada (`android-client/`, decoder hardware 30 FPS).
 - **Fase 06 — Touch Input Bridge:** completada (orbit + pinch, `InputProcessor`).
 - **Fase 07 — Performance Optimization:** completada (readback 19,9 → 0,75 ms).
-- **POC (fases 1–7): funcional.** Fase 08 (investigación) pendiente.
+- **Fase 08 — GPU Redirection Research:** completada. **Conclusión:** la
+  redirección transparente de apps de terceros no es viable sin root o
+  cooperación de la app. Ver [`docs/research/android-gpu-redirection.md`](docs/research/android-gpu-redirection.md).
+- **POC (fases 1–7): funcional.**
 - Entorno de desarrollo verificado.
 
 ## Documentación
