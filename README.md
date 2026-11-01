@@ -18,6 +18,7 @@ con `MediaCodec` y devuelve los eventos táctiles a la PC.
   redirección transparente de apps de terceros no es viable sin root o
   cooperación de la app. Ver [`docs/research/android-gpu-redirection.md`](docs/research/android-gpu-redirection.md).
 - **POC (fases 1–7): funcional.**
+- **Proyecto cerrado el 31/10/2026.** Ver [`docs/decision-log.md`](docs/decision-log.md).
 - Entorno de desarrollo verificado.
 
 ## Documentación

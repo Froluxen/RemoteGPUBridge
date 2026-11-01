@@ -1,7 +1,8 @@
 # Plan de Desarrollo — Android Remote GPU Bridge (ARGB)
 
 > **Fecha:** 31 de octubre de 2026
-> **Estado:** Documentado; Fases 01–07 completadas (POC) + Fase 08 (investigación) completada
+> **Estado:** Documentado; Fases 01–07 (POC) y Fase 08 (investigación) completadas.
+> **Proyecto cerrado el 31/10/2026** (ver [`docs/decision-log.md`](docs/decision-log.md)).
 > **Repositorio:** https://github.com/Froluxen/RemoteGPUBridge
 > **Fuente base:** `Android-Remote-GPU-Bridge-Development-Plan.md`
 > (este documento consolida y actualiza ese plan con las decisiones acordadas)
@@ -217,7 +218,7 @@ Instrumentación obligatoria: `render_time_ms`, `readback_time_ms`,
 ## 8. Estado actual y próximos pasos
 
 **Estado:** Fases 01–08 completadas: POC funcional + investigación de
-redirección cerrada. Repositorio conectado a
+redirección cerrada. **Proyecto cerrado el 31/10/2026.** Repositorio conectado a
 `https://github.com/Froluxen/RemoteGPUBridge.git` (rama `main`).
 
 Resultado de la Fase 01:
@@ -295,7 +296,9 @@ Próximos pasos:
 7. ~~Fase 06: puente de entrada táctil~~ ✔ completado (31/10/2026).
 8. ~~Fase 07: optimización de rendimiento~~ ✔ completado (31/10/2026).
 9. ~~Fase 08: investigación de redirección de GPU~~ ✔ completado (31/10/2026).
-10. Decisión de producto: evaluar una VM/emulador Android en PC como alternativa.
+10. ~~Decisión de producto~~ ✔ **cerrado (31/10/2026):** no se continúa por
+    ahora con la VM/emulador; el proyecto se deja aquí.
+    Ver [`docs/decision-log.md`](docs/decision-log.md).
 
 **Definition of Done — Fase 01** (resumida):
 - [x] Repo y estructura creados; CMake configura y compila con C++20.
@@ -303,3 +306,18 @@ Próximos pasos:
 - [x] Se identifica y selecciona la RTX 4060 explícitamente.
 - [x] Se crea el logical device; logs de errores y capacidades.
 - [x] La app finaliza limpiamente.
+
+---
+
+## 16. Cierre del proyecto (31/10/2026)
+
+**Decisión:** cerrar el proyecto en este punto.
+
+- Se completó la POC de remote rendering (fases 1–7) y la investigación de
+  redirección de GPU (fase 8).
+- La redirección transparente de apps de terceros se descartó por **no ser
+  viable** sin root o cooperación de la app.
+- No se continúa, por ahora, con la alternativa de VM/emulador Android en PC.
+- Lo entregado queda documentado y reproducible en este repositorio.
+
+Detalle y contexto: [`docs/decision-log.md`](docs/decision-log.md).

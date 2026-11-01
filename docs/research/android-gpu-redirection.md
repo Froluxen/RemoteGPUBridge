@@ -315,3 +315,11 @@ adb shell cmd virtualization              # servicio inexistente
   https://source.android.com/docs/core/graphics/arch-bq-gralloc
 - AOSP — *Hardware Composer HAL*:
   https://source.android.com/docs/core/graphics/hwc
+
+---
+
+## 11. Decisión del proyecto (31/10/2026)
+
+El proyecto se cierra en este punto. No se implementa ninguna vía de
+inyección/root ni la alternativa de emulador/VM por ahora. Esta investigación
+queda como el resultado de la Fase 08. Detalle: [`docs/decision-log.md`](../decision-log.md).
