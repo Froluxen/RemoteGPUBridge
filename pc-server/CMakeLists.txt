@@ -142,7 +142,7 @@ if(FFMPEG_ROOT AND EXISTS "${FFMPEG_ROOT}/include/libavcodec/avcodec.h")
 
         add_dependencies(argb-server argb-shaders)
         target_include_directories(argb-server PRIVATE src "${CMAKE_SOURCE_DIR}/shared" "${FFMPEG_ROOT}/include")
-        target_link_libraries(argb-server PRIVATE Vulkan::Vulkan "${AVCODEC_LIBRARY}" "${AVUTIL_LIBRARY}" ws2_32)
+        target_link_libraries(argb-server PRIVATE Vulkan::Vulkan "${AVCODEC_LIBRARY}" "${AVUTIL_LIBRARY}" ws2_32 winmm)
 
         if(MSVC)
             target_compile_definitions(argb-server PRIVATE _CRT_SECURE_NO_WARNINGS)

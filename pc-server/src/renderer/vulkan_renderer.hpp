@@ -73,7 +73,8 @@ private:
                       VkBufferUsageFlags usage,
                       VkMemoryPropertyFlags properties,
                       VkBuffer& buffer,
-                      VkDeviceMemory& memory);
+                      VkDeviceMemory& memory,
+                      bool logErrors = true);
     bool createImage(std::uint32_t width,
                      std::uint32_t height,
                      VkFormat format,
@@ -132,6 +133,7 @@ private:
 
     VkBuffer readbackBuffer_ = VK_NULL_HANDLE;
     VkDeviceMemory readbackMemory_ = VK_NULL_HANDLE;
+    void* readbackMapped_ = nullptr;
 
     VkCommandPool commandPool_ = VK_NULL_HANDLE;
     VkCommandBuffer commandBuffer_ = VK_NULL_HANDLE;

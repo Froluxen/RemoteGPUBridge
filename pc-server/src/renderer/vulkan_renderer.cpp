@@ -560,11 +560,38 @@ bool VulkanRenderer::createSyncObjects() {
 
 bool VulkanRenderer::createReadbackBuffer() {
     const VkDeviceSize bufferSize = static_cast<VkDeviceSize>(config_.width) * config_.height * 4;
-    return createBuffer(bufferSize,
-                        VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        readbackBuffer_,
-                        readbackMemory_);
+
+    const auto cachedProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                  VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+                                  VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+    const auto fallbackProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                    VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+    bool created = createBuffer(bufferSize,
+                                VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                cachedProperties,
+                                readbackBuffer_,
+                                readbackMemory_,
+                                false);
+    if (!created) {
+        created = createBuffer(bufferSize,
+                               VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                               fallbackProperties,
+                               readbackBuffer_,
+                               readbackMemory_,
+                               true);
+    }
+    if (!created) {
+        return false;
+    }
+
+    const VkResult result = vkMapMemory(device_, readbackMemory_, 0, bufferSize, 0, &readbackMapped_);
+    if (result != VK_SUCCESS) {
+        log::error(std::format("vkMapMemory (readback persistente) fallo: {}", vk::resultString(result)));
+        readbackMapped_ = nullptr;
+        return false;
+    }
+    return true;
 }
 
 bool VulkanRenderer::renderFrame(float timeSeconds, FrameStats& stats) {
@@ -726,17 +753,14 @@ bool VulkanRenderer::captureFrame(std::vector<std::uint8_t>& pixels) {
         return false;
     }
 
-    const VkDeviceSize bufferSize = static_cast<VkDeviceSize>(config_.width) * config_.height * 4;
-    void* mapped = nullptr;
-    result = vkMapMemory(device_, readbackMemory_, 0, bufferSize, 0, &mapped);
-    if (result != VK_SUCCESS) {
-        log::error(std::format("vkMapMemory (readback) fallo: {}", vk::resultString(result)));
+    if (readbackMapped_ == nullptr) {
+        log::error("El buffer de readback no esta mapeado.");
         return false;
     }
 
+    const VkDeviceSize bufferSize = static_cast<VkDeviceSize>(config_.width) * config_.height * 4;
     pixels.resize(static_cast<std::size_t>(bufferSize));
-    std::memcpy(pixels.data(), mapped, static_cast<std::size_t>(bufferSize));
-    vkUnmapMemory(device_, readbackMemory_);
+    std::memcpy(pixels.data(), readbackMapped_, static_cast<std::size_t>(bufferSize));
     return true;
 }
 
@@ -752,7 +776,8 @@ bool VulkanRenderer::createBuffer(VkDeviceSize size,
                                   VkBufferUsageFlags usage,
                                   VkMemoryPropertyFlags properties,
                                   VkBuffer& buffer,
-                                  VkDeviceMemory& memory) {
+                                  VkDeviceMemory& memory,
+                                  bool logErrors) {
     VkBufferCreateInfo createInfo{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
     createInfo.size = size;
     createInfo.usage = usage;
@@ -769,7 +794,9 @@ bool VulkanRenderer::createBuffer(VkDeviceSize size,
 
     const std::uint32_t memoryType = findMemoryType(requirements.memoryTypeBits, properties);
     if (memoryType == UINT32_MAX) {
-        log::error("No se encontro un tipo de memoria adecuado para el buffer.");
+        if (logErrors) {
+            log::error("No se encontro un tipo de memoria adecuado para el buffer.");
+        }
         vkDestroyBuffer(device_, buffer, nullptr);
         buffer = VK_NULL_HANDLE;
         return false;
@@ -983,6 +1010,10 @@ void VulkanRenderer::shutdown() {
     if (uniformMapped_ != nullptr) {
         vkUnmapMemory(device_, uniformMemory_);
         uniformMapped_ = nullptr;
+    }
+    if (readbackMapped_ != nullptr) {
+        vkUnmapMemory(device_, readbackMemory_);
+        readbackMapped_ = nullptr;
     }
 
     destroyBuffer(uniformBuffer_, uniformMemory_);

@@ -17,9 +17,25 @@
 #include <format>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <mmsystem.h>
+
 namespace {
+
+#if defined(_WIN32)
+// Windows redondea sleep_for a ~15.6 ms por defecto; con resolucion de 1 ms
+// el pacing a 30 FPS es preciso.
+struct WindowsTimerResolution {
+    WindowsTimerResolution() { timeBeginPeriod(1); }
+    ~WindowsTimerResolution() { timeEndPeriod(1); }
+};
+#endif
 
 struct Options {
     std::uint32_t width = 1280;
@@ -201,6 +217,9 @@ int main(int argc, char** argv) {
     if (parsed == ParseResult::Error) return EXIT_FAILURE;
 
     try {
+#if defined(_WIN32)
+        WindowsTimerResolution timerResolution;
+#endif
         log::info("ARGB argb-server - Fase 04 (USB Transport Layer)");
 
         gpu::GpuContext context;
@@ -402,8 +421,12 @@ int main(int argc, char** argv) {
         int frameIndex = warmupFrames;
         std::uint64_t videoPackets = 0;
 
+        const double frameBudgetMs = 1000.0 / static_cast<double>(options.fps);
+
         while (options.forever ||
                millisecondsSince(benchmarkStart) < options.durationSeconds * 1000.0) {
+            const auto frameStart = std::chrono::steady_clock::now();
+
             const float timeSeconds =
                 static_cast<float>(frameIndex) / static_cast<float>(options.fps);
 
@@ -441,6 +464,14 @@ int main(int argc, char** argv) {
             }
 
             ++frameIndex;
+
+            // Limita el pipeline al FPS objetivo para no inundar el USB ni
+            // acelerar la animacion.
+            const double frameElapsedMs = millisecondsSince(frameStart);
+            if (frameElapsedMs < frameBudgetMs) {
+                std::this_thread::sleep_for(
+                    std::chrono::duration<double, std::milli>(frameBudgetMs - frameElapsedMs));
+            }
 
             if (millisecondsSince(lastStatsTime) >= 1000.0) {
                 lastStatsTime = std::chrono::steady_clock::now();

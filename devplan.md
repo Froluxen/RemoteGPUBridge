@@ -1,7 +1,7 @@
 # Plan de Desarrollo — Android Remote GPU Bridge (ARGB)
 
 > **Fecha:** 31 de octubre de 2026
-> **Estado:** Documentado; Fases 01–06 completadas, Fase 07 por iniciar
+> **Estado:** Documentado; Fases 01–07 completadas (POC), Fase 08 (investigación) pendiente
 > **Repositorio:** https://github.com/Froluxen/RemoteGPUBridge
 > **Fuente base:** `Android-Remote-GPU-Bridge-Development-Plan.md`
 > (este documento consolida y actualiza ese plan con las decisiones acordadas)
@@ -160,9 +160,13 @@ Detectar e inicializar la RTX 4060 por Vulkan.
   evento en el servidor. Estrés de 180 eventos a 60 Hz: 0 drops y pipeline
   estable (~30 FPS).
 
-### Fase 07 — Performance Optimization (3–5 días)
+### Fase 07 — Performance Optimization (3–5 días) — ✅ Completada
 - Medir cada etapa (render/readback/encode/transport/decode/present/input),
   reutilizar buffers, colas acotadas, descarte de frames viejos, comparar antes/después.
+- **Entregable:** [`docs/benchmarks.md`](docs/benchmarks.md).
+- **Resultado:** readback **19,9 → 0,75 ms** (mapeo persistente + memoria
+  cacheada); pipeline 45 → 452 FPS offline y 30 FPS con pacing;
+  0 frames descartados.
 
 ### Fase 08 — GPU Redirection Research (abierta; fuera del plazo base)
 - Investigación documentada de viabilidad (Vulkan Layers, ANGLE, Graphics HAL, etc.).
@@ -206,7 +210,7 @@ Instrumentación obligatoria: `render_time_ms`, `readback_time_ms`,
 
 ## 8. Estado actual y próximos pasos
 
-**Estado:** Fases 01 a 06 completadas. Repositorio conectado a
+**Estado:** Fases 01 a 07 completadas (POC funcional). Repositorio conectado a
 `https://github.com/Froluxen/RemoteGPUBridge.git` (rama `main`).
 
 Resultado de la Fase 01:
@@ -257,6 +261,15 @@ Resultado de la Fase 06:
 - Regresión corregida: el touch ya no bloquea el hilo de UI (cola + hilo
   dedicado) ni se loguea cada `INPUT`; estrés de 180 eventos a 60 Hz sin drops.
 
+Resultado de la Fase 07:
+- Readback GPU→CPU: **19,9 ms → 0,75 ms** (mapeo persistente + memoria host
+  cacheada), con fallback a memoria coherente.
+- Pipeline: 45 FPS → 452 FPS offline; `argb-server` pacea a 30 FPS con
+  `timeBeginPeriod(1)`.
+- Colas acotadas (vídeo 32, touch 64) y descarte del frame más antiguo.
+- 0 frames descartados en las pruebas de streaming.
+- Informe: [`docs/benchmarks.md`](docs/benchmarks.md).
+
 Próximos pasos:
 1. ~~Verificar el entorno~~ ✔ completado (31/10/2026).
 2. ~~Fase 01: `gpu-info.exe`~~ ✔ completado (31/10/2026).
@@ -265,7 +278,8 @@ Próximos pasos:
 5. ~~Fase 04: transporte USB + protocolo binario~~ ✔ completado (31/10/2026).
 6. ~~Fase 05: cliente Android (MediaCodec + Surface)~~ ✔ completado (31/10/2026).
 7. ~~Fase 06: puente de entrada táctil~~ ✔ completado (31/10/2026).
-8. Iniciar la Fase 07: optimización de rendimiento (readback y latencia).
+8. ~~Fase 07: optimización de rendimiento~~ ✔ completado (31/10/2026).
+9. Fase 08 (opcional): investigación de redirección de GPU para apps de terceros.
 
 **Definition of Done — Fase 01** (resumida):
 - [x] Repo y estructura creados; CMake configura y compila con C++20.

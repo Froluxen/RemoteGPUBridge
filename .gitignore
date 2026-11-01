@@ -46,6 +46,8 @@ swipe_*.png
 touch_*.png
 rtt_*.png
 stress_*.png
+paced_*.png
+bench_*.png
 
 # Sistema / editores
 .DS_Store
