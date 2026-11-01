@@ -11,6 +11,7 @@ con `MediaCodec` y devuelve los eventos táctiles a la PC.
 - **Fase 02 — Vulkan Rendering Engine:** completada (`argb-render.exe`).
 - **Fase 03 — Frame Capture & Hardware Encoding:** completada (`argb-encode.exe`).
 - **Fase 04 — USB Transport Layer:** completada (`argb-server.exe` + `docs/protocol.md`).
+- **Fase 05 — Android Video Client:** completada (`android-client/`, decoder hardware 30 FPS).
 - Entorno de desarrollo verificado.
 
 ## Documentación
@@ -59,6 +60,19 @@ build\pc-server\argb-server.exe --forever
 
 El cliente Android se conecta a `127.0.0.1:5000` (vídeo) y `127.0.0.1:5001`
 (control). El protocolo está documentado en [`docs/protocol.md`](docs/protocol.md).
+
+### Cliente Android
+
+Requisitos: JDK 17 y Android SDK (platform 35 + build-tools 35.0.0).
+
+```bat
+build-android.bat
+adb install -r android-client\app\build\outputs\apk\debug\app-debug.apk
+adb shell am start -n com.argb.client/.MainActivity
+```
+
+El cliente usa `MediaCodec` con el decoder H.264 por hardware y presenta el
+vídeo en una `Surface`, con overlay de estado/RTT.
 
 `argb-render` renderiza offscreen y guarda snapshots PPM en `snapshots/`.
 `argb-encode` renderiza, captura y codifica con NVENC a un flujo H.264.

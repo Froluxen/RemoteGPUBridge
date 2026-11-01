@@ -41,6 +41,7 @@ snapshots/
 # Salidas de video de prueba
 *.h264
 encoded_frame*.png
+phone_screen*.png
 
 # Sistema / editores
 .DS_Store

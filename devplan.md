@@ -1,7 +1,7 @@
 # Plan de Desarrollo — Android Remote GPU Bridge (ARGB)
 
 > **Fecha:** 31 de octubre de 2026
-> **Estado:** Documentado; Fases 01–04 completadas, Fase 05 por iniciar
+> **Estado:** Documentado; Fases 01–05 completadas, Fase 06 por iniciar
 > **Repositorio:** https://github.com/Froluxen/RemoteGPUBridge
 > **Fuente base:** `Android-Remote-GPU-Bridge-Development-Plan.md`
 > (este documento consolida y actualiza ese plan con las decisiones acordadas)
@@ -141,10 +141,13 @@ Detectar e inicializar la RTX 4060 por Vulkan.
 - **Resultado:** validado desde el Redmi Note 13 por ADB Reverse; control recibe
   HELLO/STATS y vídeo recibe CONFIG (SPS/PPS) + ~2,1 MB en 2 s (63 paquetes).
 
-### Fase 05 — Android Video Client (3–5 días)
+### Fase 05 — Android Video Client (3–5 días) — ✅ Completada
 - Cliente TCP, parser, `VideoReceiver`, gestión SPS/PPS, `MediaCodec` + `Surface`,
   reconexión, overlay de estadísticas.
 - **Meta:** reproducción estable a 720p30 con decoder por hardware.
+- **Entregable:** app Kotlin en `android-client/` (`argb-client`).
+- **Resultado:** vídeo en vivo en el Redmi Note 13 por ADB Reverse; decoder
+  hardware `c2.qti.avc.decoder` a 30 FPS con 0 frames descartados y RTT 2–4 ms.
 
 ### Fase 06 — Touch Input Bridge (2–4 días)
 - `ACTION_DOWN/MOVE/UP/CANCEL`, multitouch, coordenadas normalizadas, `InputProcessor`,
@@ -196,7 +199,7 @@ Instrumentación obligatoria: `render_time_ms`, `readback_time_ms`,
 
 ## 8. Estado actual y próximos pasos
 
-**Estado:** Fases 01, 02, 03 y 04 completadas. Repositorio conectado a
+**Estado:** Fases 01 a 05 completadas. Repositorio conectado a
 `https://github.com/Froluxen/RemoteGPUBridge.git` (rama `main`).
 
 Resultado de la Fase 01:
@@ -228,13 +231,22 @@ Resultado de la Fase 04:
   CONFIG + ~2,1 MB de vídeo en 2 s (63 paquetes).
 - Reconexión soportada (acepta un cliente nuevo al desconectarse).
 
+Resultado de la Fase 05:
+- App Kotlin en `android-client/` con `MainActivity`, `StreamingClient`,
+  `H264Decoder` y parser del protocolo.
+- Conecta a `127.0.0.1:5000` (vídeo) y `:5001` (control) vía ADB Reverse.
+- Configura `MediaCodec` con `csd-0`/`csd-1` (SPS/PPS) y presenta en `Surface`.
+- Decoder hardware `c2.qti.avc.decoder` a 30 FPS, 0 drops; RTT 2–4 ms.
+- Overlay de estadísticas (estado, CONFIG y RTT).
+
 Próximos pasos:
 1. ~~Verificar el entorno~~ ✔ completado (31/10/2026).
 2. ~~Fase 01: `gpu-info.exe`~~ ✔ completado (31/10/2026).
 3. ~~Fase 02: renderer offscreen + cubo rotatorio~~ ✔ completado (31/10/2026).
 4. ~~Fase 03: captura de frames + NVENC~~ ✔ completado (31/10/2026).
 5. ~~Fase 04: transporte USB + protocolo binario~~ ✔ completado (31/10/2026).
-6. Iniciar la Fase 05: cliente Android (recepción, MediaCodec y Surface).
+6. ~~Fase 05: cliente Android (MediaCodec + Surface)~~ ✔ completado (31/10/2026).
+7. Iniciar la Fase 06: puente de entrada táctil (Android → PC).
 
 **Definition of Done — Fase 01** (resumida):
 - [x] Repo y estructura creados; CMake configura y compila con C++20.
